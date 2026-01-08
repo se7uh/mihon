@@ -74,4 +74,30 @@ class SourcePreferences(
     fun migrationHideUnmatched() = preferenceStore.getBoolean("migration_hide_unmatched", false)
 
     fun migrationHideWithoutUpdates() = preferenceStore.getBoolean("migration_hide_without_updates", false)
+
+    // SY -->
+    fun dataSaver() = preferenceStore.getEnum("data_saver", DataSaver.NONE)
+
+    fun dataSaverIgnoreJpeg() = preferenceStore.getBoolean("ignore_jpeg", false)
+
+    fun dataSaverIgnoreGif() = preferenceStore.getBoolean("ignore_gif", true)
+
+    fun dataSaverImageQuality() = preferenceStore.getInt("data_saver_image_quality", 80)
+
+    fun dataSaverImageFormatJpeg() = preferenceStore.getBoolean("data_saver_image_format_jpeg", false)
+
+    fun dataSaverServer() = preferenceStore.getString("data_saver_server", "")
+
+    fun dataSaverColorBW() = preferenceStore.getBoolean("data_saver_color_bw", false)
+
+    fun dataSaverExcludedSources() = preferenceStore.getStringSet("data_saver_excluded", emptySet())
+
+    fun dataSaverDownloader() = preferenceStore.getBoolean("data_saver_downloader", true)
+
+    enum class DataSaver {
+        NONE,
+        BANDWIDTH_HERO,
+        WSRV_NL,
+    }
+    // SY <--
 }
