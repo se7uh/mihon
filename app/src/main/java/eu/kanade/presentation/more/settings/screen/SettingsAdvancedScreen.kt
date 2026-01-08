@@ -533,6 +533,12 @@ object SettingsAdvancedScreen : SearchableSettings {
                     title = "Convert to black and white",
                     enabled = dataSaver == DataSaver.BANDWIDTH_HERO,
                 ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = sourcePreferences.dataSaverAvif(),
+                    title = "Use AVIF format (highest priority)",
+                    subtitle = "AVIF provides the best compression ratio when enabled",
+                    enabled = dataSaver == DataSaver.BANDWIDTH_HERO,
+                ),
             ),
         )
     }

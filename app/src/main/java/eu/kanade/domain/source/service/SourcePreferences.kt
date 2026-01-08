@@ -94,6 +94,10 @@ class SourcePreferences(
 
     fun dataSaverDownloader() = preferenceStore.getBoolean("data_saver_downloader", true)
 
+    // SY -->
+    fun dataSaverAvif() = preferenceStore.getBoolean("data_saver_avif", false)
+    // SY <--
+
     enum class DataSaver {
         NONE,
         BANDWIDTH_HERO,

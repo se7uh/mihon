@@ -55,6 +55,7 @@ private class BandwidthHeroDataSaver(preferences: SourcePreferences) : DataSaver
     private val format = preferences.dataSaverImageFormatJpeg().toIntRepresentation()
     private val quality = preferences.dataSaverImageQuality().get()
     private val colorBW = preferences.dataSaverColorBW().toIntRepresentation()
+    private val avifEnabled = preferences.dataSaverAvif().toIntRepresentation()
 
     override fun compress(imageUrl: String): String {
         return if (dataSavedServer.isNotBlank() && !imageUrl.contains(dataSavedServer)) {
@@ -70,7 +71,7 @@ private class BandwidthHeroDataSaver(preferences: SourcePreferences) : DataSaver
 
     private fun getUrl(imageUrl: String): String {
         // Network Request sent for the Bandwidth Hero Proxy server
-        return "$dataSavedServer/?jpg=$format&l=$quality&bw=$colorBW&url=$imageUrl"
+        return "$dataSavedServer/?jpg=$format&l=$quality&bw=$colorBW&avif=$avifEnabled&url=$imageUrl"
     }
 
     private fun Preference<Boolean>.toIntRepresentation() = if (get()) "1" else "0"
