@@ -21,13 +21,14 @@ interface DataSaver {
             }
         }
 
-        suspend fun HttpSource.getImage(page: Page, dataSaver: DataSaver): Response {
-            val imageUrl = page.imageUrl ?: return getImage(page)
+        suspend fun getImage(source: HttpSource, page: Page, dataSaver: DataSaver): Response {
+            val imageUrl = page.imageUrl ?: return source.getImage(page)
+            val originalImageUrl = imageUrl
             page.imageUrl = dataSaver.compress(imageUrl)
             return try {
-                getImage(page)
+                source.getImage(page)
             } finally {
-                page.imageUrl = imageUrl
+                page.imageUrl = originalImageUrl
             }
         }
     }

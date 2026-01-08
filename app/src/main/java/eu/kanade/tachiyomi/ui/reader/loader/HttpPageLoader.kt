@@ -30,8 +30,6 @@ import kotlin.math.min
 /**
  * Loader used to load chapters from an online source.
  */
-import eu.kanade.domain.source.service.SourcePreferences
-
 internal class HttpPageLoader(
     private val chapter: ReaderChapter,
     private val source: HttpSource,
@@ -183,7 +181,7 @@ internal class HttpPageLoader(
 
             if (!chapterCache.isImageInCache(imageUrl)) {
                 page.status = Page.State.DownloadImage
-                val imageResponse = source.getImage(page, dataSaver)
+                val imageResponse = DataSaver.getImage(source, page, dataSaver)
                 chapterCache.putImageToCache(imageUrl, imageResponse)
             }
 

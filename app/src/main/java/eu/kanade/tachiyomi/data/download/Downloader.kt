@@ -57,7 +57,7 @@ import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
-import tachiyomi.domain.source.service.SourcePreferences
+import eu.kanade.domain.source.service.SourcePreferences
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -461,7 +461,7 @@ class Downloader(
                     page.imageUrl!!,
                 ) -> copyImageFromCache(chapterCache.getImageFile(page.imageUrl!!), tmpDir, filename)
                 else -> {
-                    val dataSaver = if (downloadPreferences.dataSaverDownloader().get()) {
+                    val dataSaver = if (sourcePreferences.dataSaverDownloader().get()) {
                         DataSaver(download.source, sourcePreferences)
                     } else {
                         DataSaver.NoOp
@@ -498,7 +498,7 @@ class Downloader(
         page.status = Page.State.DownloadImage
         page.progress = 0
         return flow {
-            val response = source.getImage(page, dataSaver)
+            val response = DataSaver.getImage(source, page, dataSaver)
             val file = tmpDir.createFile("$filename.tmp")!!
             try {
                 response.body.source().saveTo(file.openOutputStream())
