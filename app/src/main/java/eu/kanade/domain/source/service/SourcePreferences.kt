@@ -82,7 +82,7 @@ class SourcePreferences(
 
     fun dataSaverIgnoreGif() = preferenceStore.getBoolean("ignore_gif", true)
 
-    fun dataSaverImageQuality() = preferenceStore.getInt("data_saver_image_quality", 80)
+    fun dataSaverImageQuality() = preferenceStore.getInt("data_saver_image_quality", 40)
 
     fun dataSaverImageFormatJpeg() = preferenceStore.getBoolean("data_saver_image_format_jpeg", false)
 
