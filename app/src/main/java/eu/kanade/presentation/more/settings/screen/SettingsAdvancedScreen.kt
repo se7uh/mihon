@@ -465,12 +465,12 @@ object SettingsAdvancedScreen : SearchableSettings {
         val sourcePreferences = remember { Injekt.get<SourcePreferences>() }
         val dataSaver by sourcePreferences.dataSaver().collectAsState()
         return Preference.PreferenceGroup(
-            title = stringResource(MR.strings.label_data), // Using generic data label
+            title = "Data Saver",
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.ListPreference(
                     preference = sourcePreferences.dataSaver(),
-                    title = stringResource(MR.strings.label_data), // Using generic data label
-                    subtitle = "Compress images before downloading or loading in reader", // Using hardcoded string
+                    title = "Data Saver Service",
+                    subtitle = "Select the data saver service to use",
                     entries = persistentMapOf(
                         DataSaver.NONE to stringResource(MR.strings.disabled),
                         DataSaver.BANDWIDTH_HERO to "Bandwidth Hero",
@@ -505,8 +505,10 @@ object SettingsAdvancedScreen : SearchableSettings {
                     entries = listOf(
                         "10%",
                         "20%",
+                        "30%",
                         "40%",
                         "50%",
+                        "60%",
                         "70%",
                         "80%",
                         "90%",
@@ -535,7 +537,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverAvif(),
-                    title = "Use AVIF format (highest priority)",
+                    title = "Use AVIF format",
                     subtitle = "AVIF provides the best compression ratio when enabled",
                     enabled = dataSaver == DataSaver.BANDWIDTH_HERO,
                 ),
