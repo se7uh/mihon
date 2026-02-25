@@ -34,9 +34,9 @@ interface DataSaver {
     }
 }
 
-fun DataSaver(source: Source, preferences: SourcePreferences): DataSaver {
+fun DataSaver(source: Source?, preferences: SourcePreferences): DataSaver {
     val dataSaver = preferences.dataSaver().get()
-    if (dataSaver != NONE && source.id.toString() in preferences.dataSaverExcludedSources().get()) {
+    if (source != null && dataSaver != NONE && source.id.toString() in preferences.dataSaverExcludedSources().get()) {
         return DataSaver.NoOp
     }
     return createDataSaver(dataSaver, preferences)

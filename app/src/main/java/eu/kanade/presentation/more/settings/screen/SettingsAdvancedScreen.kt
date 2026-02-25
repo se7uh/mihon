@@ -467,6 +467,7 @@ object SettingsAdvancedScreen : SearchableSettings {
     private fun getDataSaverGroup(): Preference.PreferenceGroup {
         val sourcePreferences = remember { Injekt.get<SourcePreferences>() }
         val dataSaver by sourcePreferences.dataSaver().collectAsState()
+        val dataSaverImageQuality by sourcePreferences.dataSaverImageQuality().collectAsState()
         return Preference.PreferenceGroup(
             title = "Data Saver",
             preferenceItems = persistentListOf(
@@ -506,23 +507,13 @@ object SettingsAdvancedScreen : SearchableSettings {
                     title = "Ignore GIF animations",
                     enabled = dataSaver != DataSaver.NONE,
                 ),
-                Preference.PreferenceItem.ListPreference(
-                    preference = sourcePreferences.dataSaverImageQuality(),
+                Preference.PreferenceItem.SliderPreference(
+                    value = dataSaverImageQuality,
+                    valueRange = 1..100,
                     title = "Image quality",
-                    subtitle = "Adjust image compression quality",
-                    entries = listOf(
-                        "10%",
-                        "20%",
-                        "30%",
-                        "40%",
-                        "50%",
-                        "60%",
-                        "70%",
-                        "80%",
-                        "90%",
-                        "95%",
-                    ).associateBy { it.trimEnd('%').toInt() }.toImmutableMap(),
+                    valueString = "$dataSaverImageQuality%",
                     enabled = dataSaver != DataSaver.NONE,
+                    onValueChanged = { sourcePreferences.dataSaverImageQuality().set(it) },
                 ),
                 kotlin.run {
                     val dataSaverImageFormatJpeg by sourcePreferences.dataSaverImageFormatJpeg()
