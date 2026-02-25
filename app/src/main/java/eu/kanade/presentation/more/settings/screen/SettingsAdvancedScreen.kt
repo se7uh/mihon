@@ -489,6 +489,11 @@ object SettingsAdvancedScreen : SearchableSettings {
                     enabled = dataSaver != DataSaver.NONE,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
+                    preference = sourcePreferences.dataSaverCover(),
+                    title = "Use data saver for covers",
+                    enabled = dataSaver != DataSaver.NONE,
+                ),
+                Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverIgnoreJpeg(),
                     title = "Ignore JPEG images",
                     enabled = dataSaver != DataSaver.NONE,

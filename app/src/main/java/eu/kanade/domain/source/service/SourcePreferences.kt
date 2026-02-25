@@ -94,6 +94,8 @@ class SourcePreferences(
 
     fun dataSaverDownloader() = preferenceStore.getBoolean("data_saver_downloader", true)
 
+    fun dataSaverCover() = preferenceStore.getBoolean("data_saver_cover", true)
+
     // SY -->
     fun dataSaverAvif() = preferenceStore.getBoolean("data_saver_avif", false)
     // SY <--

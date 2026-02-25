@@ -39,7 +39,17 @@ fun DataSaver(source: Source, preferences: SourcePreferences): DataSaver {
     if (dataSaver != NONE && source.id.toString() in preferences.dataSaverExcludedSources().get()) {
         return DataSaver.NoOp
     }
-    return when (dataSaver) {
+    return createDataSaver(dataSaver, preferences)
+}
+
+@JvmName("DataSaverNullable")
+fun DataSaver(source: Source?, preferences: SourcePreferences): DataSaver {
+    if (source != null) return DataSaver(source, preferences)
+    return createDataSaver(preferences.dataSaver().get(), preferences)
+}
+
+private fun createDataSaver(type: SourcePreferences.DataSaver, preferences: SourcePreferences): DataSaver {
+    return when (type) {
         NONE -> DataSaver.NoOp
         BANDWIDTH_HERO -> BandwidthHeroDataSaver(preferences)
         WSRV_NL -> WsrvNlDataSaver(preferences)
@@ -60,7 +70,10 @@ private class BandwidthHeroDataSaver(preferences: SourcePreferences) : DataSaver
     override fun compress(imageUrl: String): String {
         return if (dataSavedServer.isNotBlank() && !imageUrl.contains(dataSavedServer)) {
             when {
-                imageUrl.contains(".jpeg", true) || imageUrl.contains(".jpg", true) -> if (ignoreJpg) imageUrl else getUrl(imageUrl)
+                imageUrl.contains(
+                    ".jpeg",
+                    true,
+                ) || imageUrl.contains(".jpg", true) -> if (ignoreJpg) imageUrl else getUrl(imageUrl)
                 imageUrl.contains(".gif", true) -> if (ignoreGif) imageUrl else getUrl(imageUrl)
                 else -> getUrl(imageUrl)
             }
@@ -86,7 +99,10 @@ private class WsrvNlDataSaver(preferences: SourcePreferences) : DataSaver {
 
     override fun compress(imageUrl: String): String {
         return when {
-            imageUrl.contains(".jpeg", true) || imageUrl.contains(".jpg", true) -> if (ignoreJpg) imageUrl else getUrl(imageUrl)
+            imageUrl.contains(
+                ".jpeg",
+                true,
+            ) || imageUrl.contains(".jpg", true) -> if (ignoreJpg) imageUrl else getUrl(imageUrl)
             imageUrl.contains(".gif", true) -> if (ignoreGif) imageUrl else getUrl(imageUrl)
             else -> getUrl(imageUrl)
         }
