@@ -34,12 +34,16 @@ interface DataSaver {
     }
 }
 
-fun DataSaver(source: Source, preferences: SourcePreferences): DataSaver {
+fun DataSaver(source: Source?, preferences: SourcePreferences): DataSaver {
     val dataSaver = preferences.dataSaver().get()
-    if (dataSaver != NONE && source.id.toString() in preferences.dataSaverExcludedSources().get()) {
+    if (source != null && dataSaver != NONE && source.id.toString() in preferences.dataSaverExcludedSources().get()) {
         return DataSaver.NoOp
     }
-    return when (dataSaver) {
+    return createDataSaver(dataSaver, preferences)
+}
+
+private fun createDataSaver(type: SourcePreferences.DataSaver, preferences: SourcePreferences): DataSaver {
+    return when (type) {
         NONE -> DataSaver.NoOp
         BANDWIDTH_HERO -> BandwidthHeroDataSaver(preferences)
         WSRV_NL -> WsrvNlDataSaver(preferences)

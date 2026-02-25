@@ -12,10 +12,12 @@ import coil3.fetch.SourceFetchResult
 import coil3.getOrDefault
 import coil3.request.Options
 import com.hippo.unifile.UniFile
+import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.coil.MangaCoverFetcher.Companion.USE_CUSTOM_COVER_KEY
 import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.util.DataSaver
 import logcat.LogPriority
 import okhttp3.CacheControl
 import okhttp3.Call
@@ -55,6 +57,7 @@ class MangaCoverFetcher(
     private val sourceLazy: Lazy<HttpSource?>,
     private val callFactoryLazy: Lazy<Call.Factory>,
     private val imageLoader: ImageLoader,
+    private val dataSaverLazy: Lazy<DataSaver>,
 ) : Fetcher {
 
     private val diskCacheKey: String
@@ -181,7 +184,7 @@ class MangaCoverFetcher(
 
     private fun newRequest(): Request {
         val request = Request.Builder().apply {
-            url(url!!)
+            url(dataSaverLazy.value.compress(url!!))
 
             val sourceHeaders = sourceLazy.value?.headers
             if (sourceHeaders != null) {
@@ -303,8 +306,10 @@ class MangaCoverFetcher(
 
         private val coverCache: CoverCache by injectLazy()
         private val sourceManager: SourceManager by injectLazy()
+        private val sourcePreferences: SourcePreferences by injectLazy()
 
         override fun create(data: Manga, options: Options, imageLoader: ImageLoader): Fetcher {
+            val source = lazy { sourceManager.get(data.source) as? HttpSource }
             return MangaCoverFetcher(
                 url = data.thumbnailUrl,
                 isLibraryManga = data.favorite,
@@ -312,9 +317,10 @@ class MangaCoverFetcher(
                 coverFileLazy = lazy { coverCache.getCoverFile(data.thumbnailUrl) },
                 customCoverFileLazy = lazy { coverCache.getCustomCoverFile(data.id) },
                 diskCacheKeyLazy = lazy { imageLoader.components.key(data, options)!! },
-                sourceLazy = lazy { sourceManager.get(data.source) as? HttpSource },
+                sourceLazy = source,
                 callFactoryLazy = callFactoryLazy,
                 imageLoader = imageLoader,
+                dataSaverLazy = coverDataSaver(source, sourcePreferences),
             )
         }
     }
@@ -325,8 +331,10 @@ class MangaCoverFetcher(
 
         private val coverCache: CoverCache by injectLazy()
         private val sourceManager: SourceManager by injectLazy()
+        private val sourcePreferences: SourcePreferences by injectLazy()
 
         override fun create(data: MangaCover, options: Options, imageLoader: ImageLoader): Fetcher {
+            val source = lazy { sourceManager.get(data.sourceId) as? HttpSource }
             return MangaCoverFetcher(
                 url = data.url,
                 isLibraryManga = data.isMangaFavorite,
@@ -334,9 +342,10 @@ class MangaCoverFetcher(
                 coverFileLazy = lazy { coverCache.getCoverFile(data.url) },
                 customCoverFileLazy = lazy { coverCache.getCustomCoverFile(data.mangaId) },
                 diskCacheKeyLazy = lazy { imageLoader.components.key(data, options)!! },
-                sourceLazy = lazy { sourceManager.get(data.sourceId) as? HttpSource },
+                sourceLazy = source,
                 callFactoryLazy = callFactoryLazy,
                 imageLoader = imageLoader,
+                dataSaverLazy = coverDataSaver(source, sourcePreferences),
             )
         }
     }
@@ -348,5 +357,16 @@ class MangaCoverFetcher(
         private val CACHE_CONTROL_NO_NETWORK_NO_CACHE = CacheControl.Builder().noCache().onlyIfCached().build()
 
         private const val HTTP_NOT_MODIFIED = 304
+
+        fun coverDataSaver(
+            sourceLazy: Lazy<HttpSource?>,
+            sourcePreferences: SourcePreferences,
+        ): Lazy<DataSaver> = lazy {
+            if (sourcePreferences.dataSaverCover().get()) {
+                DataSaver(sourceLazy.value, sourcePreferences)
+            } else {
+                DataSaver.NoOp
+            }
+        }
     }
 }
