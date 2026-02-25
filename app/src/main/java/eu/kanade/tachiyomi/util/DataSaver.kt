@@ -42,6 +42,7 @@ fun DataSaver(source: Source, preferences: SourcePreferences): DataSaver {
     return createDataSaver(dataSaver, preferences)
 }
 
+@JvmName("DataSaverNullable")
 fun DataSaver(source: Source?, preferences: SourcePreferences): DataSaver {
     if (source != null) return DataSaver(source, preferences)
     return createDataSaver(preferences.dataSaver().get(), preferences)
@@ -69,7 +70,10 @@ private class BandwidthHeroDataSaver(preferences: SourcePreferences) : DataSaver
     override fun compress(imageUrl: String): String {
         return if (dataSavedServer.isNotBlank() && !imageUrl.contains(dataSavedServer)) {
             when {
-                imageUrl.contains(".jpeg", true) || imageUrl.contains(".jpg", true) -> if (ignoreJpg) imageUrl else getUrl(imageUrl)
+                imageUrl.contains(
+                    ".jpeg",
+                    true,
+                ) || imageUrl.contains(".jpg", true) -> if (ignoreJpg) imageUrl else getUrl(imageUrl)
                 imageUrl.contains(".gif", true) -> if (ignoreGif) imageUrl else getUrl(imageUrl)
                 else -> getUrl(imageUrl)
             }
@@ -95,7 +99,10 @@ private class WsrvNlDataSaver(preferences: SourcePreferences) : DataSaver {
 
     override fun compress(imageUrl: String): String {
         return when {
-            imageUrl.contains(".jpeg", true) || imageUrl.contains(".jpg", true) -> if (ignoreJpg) imageUrl else getUrl(imageUrl)
+            imageUrl.contains(
+                ".jpeg",
+                true,
+            ) || imageUrl.contains(".jpg", true) -> if (ignoreJpg) imageUrl else getUrl(imageUrl)
             imageUrl.contains(".gif", true) -> if (ignoreGif) imageUrl else getUrl(imageUrl)
             else -> getUrl(imageUrl)
         }
