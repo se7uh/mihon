@@ -26,6 +26,8 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.extension.interactor.TrustExtension
+import eu.kanade.domain.source.service.SourcePreferences
+import eu.kanade.domain.source.service.SourcePreferences.DataSaver
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.advanced.ClearDatabaseScreen
 import eu.kanade.presentation.more.settings.screen.debug.DebugInfoScreen
@@ -130,6 +132,7 @@ object SettingsAdvancedScreen : SearchableSettings {
             getLibraryGroup(libraryPreferences = libraryPreferences),
             getReaderGroup(basePreferences = basePreferences),
             getExtensionsGroup(basePreferences = basePreferences),
+            getDataSaverGroup(), // Add data saver settings group
         )
     }
 
@@ -452,6 +455,87 @@ object SettingsAdvancedScreen : SearchableSettings {
                         trustExtension.revokeAll()
                         context.toast(MR.strings.requires_app_restart)
                     },
+                ),
+            ),
+        )
+    }
+
+    @Composable
+    private fun getDataSaverGroup(): Preference.PreferenceGroup {
+        val sourcePreferences = remember { Injekt.get<SourcePreferences>() }
+        val dataSaver by sourcePreferences.dataSaver().collectAsState()
+        val dataSaverImageQuality by sourcePreferences.dataSaverImageQuality().collectAsState()
+        return Preference.PreferenceGroup(
+            title = "Data Saver",
+            preferenceItems = persistentListOf(
+                Preference.PreferenceItem.ListPreference(
+                    preference = sourcePreferences.dataSaver(),
+                    title = "Data Saver Service",
+                    subtitle = "Select the data saver service to use",
+                    entries = persistentMapOf(
+                        DataSaver.NONE to stringResource(MR.strings.disabled),
+                        DataSaver.BANDWIDTH_HERO to "Bandwidth Hero",
+                        DataSaver.WSRV_NL to "wsrv.nl",
+                    ),
+                ),
+                Preference.PreferenceItem.EditTextPreference(
+                    preference = sourcePreferences.dataSaverServer(),
+                    title = "Bandwidth Hero Server",
+                    subtitle = "Enter Bandwidth Hero Proxy server URL",
+                    enabled = dataSaver == DataSaver.BANDWIDTH_HERO,
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = sourcePreferences.dataSaverDownloader(),
+                    title = "Use data saver in downloader",
+                    enabled = dataSaver != DataSaver.NONE,
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = sourcePreferences.dataSaverCover(),
+                    title = "Use data saver for covers",
+                    enabled = dataSaver != DataSaver.NONE,
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = sourcePreferences.dataSaverIgnoreJpeg(),
+                    title = "Ignore JPEG images",
+                    enabled = dataSaver != DataSaver.NONE,
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = sourcePreferences.dataSaverIgnoreGif(),
+                    title = "Ignore GIF animations",
+                    enabled = dataSaver != DataSaver.NONE,
+                ),
+                Preference.PreferenceItem.SliderPreference(
+                    value = dataSaverImageQuality,
+                    valueRange = 1..100,
+                    title = "Image quality",
+                    valueString = "$dataSaverImageQuality%",
+                    enabled = dataSaver != DataSaver.NONE,
+                    onValueChanged = { sourcePreferences.dataSaverImageQuality().set(it) },
+                ),
+                kotlin.run {
+                    val dataSaverImageFormatJpeg by sourcePreferences.dataSaverImageFormatJpeg()
+                        .collectAsState()
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = sourcePreferences.dataSaverImageFormatJpeg(),
+                        title = "Convert to JPEG",
+                        subtitle = if (dataSaverImageFormatJpeg) {
+                            "Currently converting to JPEG"
+                        } else {
+                            "Currently preserving original format"
+                        },
+                        enabled = dataSaver != DataSaver.NONE,
+                    )
+                },
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = sourcePreferences.dataSaverColorBW(),
+                    title = "Convert to black and white",
+                    enabled = dataSaver == DataSaver.BANDWIDTH_HERO,
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = sourcePreferences.dataSaverAvif(),
+                    title = "Use AVIF format",
+                    subtitle = "AVIF provides the best compression ratio when enabled",
+                    enabled = dataSaver == DataSaver.BANDWIDTH_HERO,
                 ),
             ),
         )

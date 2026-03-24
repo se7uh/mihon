@@ -4,6 +4,7 @@ import android.content.Context
 import com.hippo.unifile.UniFile
 import eu.kanade.domain.chapter.model.toSChapter
 import eu.kanade.domain.manga.model.getComicInfo
+import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.library.LibraryUpdateNotifier
@@ -11,6 +12,7 @@ import eu.kanade.tachiyomi.data.notification.NotificationHandler
 import eu.kanade.tachiyomi.source.UnmeteredSource
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.util.DataSaver
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.DiskUtil.NOMEDIA_FILE
 import eu.kanade.tachiyomi.util.storage.saveTo
@@ -96,6 +98,7 @@ class Downloader(
     private val notifier by lazy { DownloadNotifier(context) }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val sourcePreferences: SourcePreferences = Injekt.get()
     private var downloaderJob: Job? = null
 
     /**
@@ -457,7 +460,14 @@ class Downloader(
                 chapterCache.isImageInCache(
                     page.imageUrl!!,
                 ) -> copyImageFromCache(chapterCache.getImageFile(page.imageUrl!!), tmpDir, filename)
-                else -> downloadImage(page, download.source, tmpDir, filename)
+                else -> {
+                    val dataSaver = if (sourcePreferences.dataSaverDownloader().get()) {
+                        DataSaver(download.source, sourcePreferences)
+                    } else {
+                        DataSaver.NoOp
+                    }
+                    downloadImage(page, download.source, tmpDir, filename, dataSaver)
+                }
             }
 
             // When the page is ready, set page path, progress (just in case) and status
@@ -482,12 +492,19 @@ class Downloader(
      * @param source the source of the page.
      * @param tmpDir the temporary directory of the download.
      * @param filename the filename of the image.
+     * @param dataSaver the data saver to use for image compression.
      */
-    private suspend fun downloadImage(page: Page, source: HttpSource, tmpDir: UniFile, filename: String): UniFile {
+    private suspend fun downloadImage(
+        page: Page,
+        source: HttpSource,
+        tmpDir: UniFile,
+        filename: String,
+        dataSaver: DataSaver = DataSaver.NoOp,
+    ): UniFile {
         page.status = Page.State.DownloadImage
         page.progress = 0
         return flow {
-            val response = source.getImage(page)
+            val response = DataSaver.getImage(source, page, dataSaver)
             val file = tmpDir.createFile("$filename.tmp")!!
             try {
                 response.body.source().saveTo(file.openOutputStream())
