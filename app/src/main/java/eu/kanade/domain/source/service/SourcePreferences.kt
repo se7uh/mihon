@@ -86,4 +86,34 @@ class SourcePreferences(
         "migration_hide_without_updates",
         false,
     )
+
+    // SY -->
+    val dataSaver: Preference<DataSaver> = preferenceStore.getEnum("data_saver", DataSaver.NONE)
+
+    val dataSaverIgnoreJpeg: Preference<Boolean> = preferenceStore.getBoolean("ignore_jpeg", false)
+
+    val dataSaverIgnoreGif: Preference<Boolean> = preferenceStore.getBoolean("ignore_gif", true)
+
+    val dataSaverImageQuality: Preference<Int> = preferenceStore.getInt("data_saver_image_quality", 40)
+
+    val dataSaverImageFormatJpeg: Preference<Boolean> = preferenceStore.getBoolean("data_saver_image_format_jpeg", false)
+
+    val dataSaverServer: Preference<String> = preferenceStore.getString("data_saver_server", "")
+
+    val dataSaverColorBW: Preference<Boolean> = preferenceStore.getBoolean("data_saver_color_bw", false)
+
+    val dataSaverExcludedSources: Preference<Set<String>> = preferenceStore.getStringSet("data_saver_excluded", emptySet())
+
+    val dataSaverDownloader: Preference<Boolean> = preferenceStore.getBoolean("data_saver_downloader", true)
+
+    val dataSaverCover: Preference<Boolean> = preferenceStore.getBoolean("data_saver_cover", true)
+
+    val dataSaverAvif: Preference<Boolean> = preferenceStore.getBoolean("data_saver_avif", false)
+
+    enum class DataSaver {
+        NONE,
+        BANDWIDTH_HERO,
+        WSRV_NL,
+    }
+    // SY <--
 }
