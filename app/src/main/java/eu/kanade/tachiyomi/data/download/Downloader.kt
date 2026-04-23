@@ -463,7 +463,7 @@ class Downloader(
         try {
             // If the image is already downloaded, do nothing. Otherwise download from network
             val file = when {
-                imageFile != null -> imageFile
+                imageFile != null && canUseCache -> imageFile
                 canUseCache && chapterCache.isImageInCache(
                     page.imageUrl!!,
                 ) -> copyImageFromCache(chapterCache.getImageFile(page.imageUrl!!), tmpDir, filename)
@@ -560,7 +560,8 @@ class Downloader(
      */
     private fun getImageExtension(response: Response, file: UniFile): String {
         val mime = response.body.contentType()?.run { if (type == "image") "image/$subtype" else null }
-        return ImageUtil.getExtensionFromMimeType(mime) { file.openInputStream() }
+        val imageType = ImageUtil.findImageType { file.openInputStream() }
+        return resolveImageExtension(mime, imageType)
     }
 
     private fun splitTallImageIfNeeded(page: Page, tmpDir: UniFile) {
@@ -755,4 +756,8 @@ private const val MIN_DISK_SPACE = 200L * 1024 * 1024
 
 internal fun shouldUseChapterCache(imageUrl: String, dataSaver: DataSaver): Boolean {
     return dataSaver.compress(imageUrl) == imageUrl
+}
+
+internal fun resolveImageExtension(mime: String?, imageType: ImageUtil.ImageType?): String {
+    return imageType?.extension ?: ImageUtil.ImageType.entries.find { it.mime == mime }?.extension ?: "jpg"
 }

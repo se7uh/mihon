@@ -9,6 +9,8 @@ import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
 import okhttp3.Response
 import tachiyomi.core.common.preference.Preference
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 interface DataSaver {
 
@@ -84,10 +86,22 @@ private class BandwidthHeroDataSaver(preferences: SourcePreferences) : DataSaver
 
     private fun getUrl(imageUrl: String): String {
         // Network Request sent for the Bandwidth Hero Proxy server
-        return "$dataSavedServer/?jpg=$format&l=$quality&bw=$colorBW&avif=$avifEnabled&url=$imageUrl"
+        return buildBandwidthHeroUrl(dataSavedServer, format, quality, colorBW, avifEnabled, imageUrl)
     }
 
     private fun Preference<Boolean>.toIntRepresentation() = if (get()) "1" else "0"
+}
+
+internal fun buildBandwidthHeroUrl(
+    server: String,
+    format: String,
+    quality: Int,
+    colorBW: String,
+    avifEnabled: String,
+    imageUrl: String,
+): String {
+    val encodedImageUrl = URLEncoder.encode(imageUrl, StandardCharsets.UTF_8.toString())
+    return "$server/?jpeg=$format&l=$quality&bw=$colorBW&avif=$avifEnabled&url=$encodedImageUrl"
 }
 
 private class WsrvNlDataSaver(preferences: SourcePreferences) : DataSaver {
