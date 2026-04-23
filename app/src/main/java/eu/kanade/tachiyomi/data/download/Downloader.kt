@@ -441,6 +441,13 @@ class Downloader(
             return
         }
 
+        val dataSaver = if (sourcePreferences.dataSaverDownloader().get()) {
+            DataSaver(download.source, sourcePreferences)
+        } else {
+            DataSaver.NoOp
+        }
+        val canUseCache = shouldUseChapterCache(page.imageUrl!!, dataSaver)
+
         val digitCount = (download.pages?.size ?: 0).toString().length.coerceAtLeast(3)
         val filename = "%0${digitCount}d".format(Locale.ENGLISH, page.number)
         val tmpFile = tmpDir.findFile("$filename.tmp")
@@ -457,15 +464,10 @@ class Downloader(
             // If the image is already downloaded, do nothing. Otherwise download from network
             val file = when {
                 imageFile != null -> imageFile
-                chapterCache.isImageInCache(
+                canUseCache && chapterCache.isImageInCache(
                     page.imageUrl!!,
                 ) -> copyImageFromCache(chapterCache.getImageFile(page.imageUrl!!), tmpDir, filename)
                 else -> {
-                    val dataSaver = if (sourcePreferences.dataSaverDownloader().get()) {
-                        DataSaver(download.source, sourcePreferences)
-                    } else {
-                        DataSaver.NoOp
-                    }
                     downloadImage(page, download.source, tmpDir, filename, dataSaver)
                 }
             }
@@ -750,3 +752,7 @@ class Downloader(
 
 // Arbitrary minimum required space to start a download: 200 MB
 private const val MIN_DISK_SPACE = 200L * 1024 * 1024
+
+internal fun shouldUseChapterCache(imageUrl: String, dataSaver: DataSaver): Boolean {
+    return dataSaver.compress(imageUrl) == imageUrl
+}
