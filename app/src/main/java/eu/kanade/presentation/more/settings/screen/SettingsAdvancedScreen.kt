@@ -462,12 +462,12 @@ object SettingsAdvancedScreen : SearchableSettings {
         val dataSaverImageQuality by sourcePreferences.dataSaverImageQuality().collectAsState()
         return Preference.PreferenceGroup(
             title = "Data Saver",
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.ListPreference(
                     preference = sourcePreferences.dataSaver(),
                     title = "Data Saver Service",
                     subtitle = "Select the data saver service to use",
-                    entries = persistentMapOf(
+                    entries = mapOf(
                         DataSaver.NONE to stringResource(MR.strings.disabled),
                         DataSaver.BANDWIDTH_HERO to "Bandwidth Hero",
                         DataSaver.WSRV_NL to "wsrv.nl",
