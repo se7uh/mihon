@@ -232,9 +232,24 @@ object ImageUtil {
         }
         val splitDataList = options.splitData
 
+        val imageType = findImageType(imageSource.peek().inputStream())
+        val (compressFormat, extension) = when (imageType) {
+            ImageType.PNG -> Bitmap.CompressFormat.PNG to ImageType.PNG.extension
+            ImageType.WEBP -> {
+                val format = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    Bitmap.CompressFormat.WEBP_LOSSY
+                } else {
+                    @Suppress("DEPRECATION")
+                    Bitmap.CompressFormat.WEBP
+                }
+                format to ImageType.WEBP.extension
+            }
+            else -> Bitmap.CompressFormat.JPEG to ImageType.JPEG.extension
+        }
+
         return try {
             splitDataList.forEach { splitData ->
-                val splitImageName = splitImageName(filenamePrefix, splitData.index)
+                val splitImageName = splitImageName(filenamePrefix, splitData.index, extension)
                 // Remove pre-existing split if exists (this split shouldn't exist under normal circumstances)
                 tmpDir.findFile(splitImageName)?.delete()
 
@@ -244,7 +259,7 @@ object ImageUtil {
 
                 splitFile.openOutputStream().use { outputStream ->
                     val splitBitmap = bitmapRegionDecoder.decodeRegion(region, options)
-                    splitBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    splitBitmap.compress(compressFormat, 100, outputStream)
                     splitBitmap.recycle()
                 }
                 logcat {
@@ -257,7 +272,7 @@ object ImageUtil {
         } catch (e: Exception) {
             // Image splits were not successfully saved so delete them and keep the original image
             splitDataList
-                .map { splitImageName(filenamePrefix, it.index) }
+                .map { splitImageName(filenamePrefix, it.index, extension) }
                 .forEach { tmpDir.findFile(it)?.delete() }
             logcat(LogPriority.ERROR, e)
             false
@@ -266,10 +281,11 @@ object ImageUtil {
         }
     }
 
-    private fun splitImageName(filenamePrefix: String, index: Int) = "${filenamePrefix}__${"%03d".format(
-        Locale.ENGLISH,
-        index + 1,
-    )}.jpg"
+    private fun splitImageName(filenamePrefix: String, index: Int, extension: String = ImageType.JPEG.extension) =
+        "${filenamePrefix}__${"%03d".format(
+            Locale.ENGLISH,
+            index + 1,
+        )}.$extension"
 
     private val BitmapFactory.Options.splitData
         get(): List<SplitData> {

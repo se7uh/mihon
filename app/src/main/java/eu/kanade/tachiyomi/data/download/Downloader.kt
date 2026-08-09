@@ -606,7 +606,7 @@ class Downloader(
                 fileName in listOf(COMIC_INFO_FILE, NOMEDIA_FILE) -> false
                 fileName.endsWith(".tmp") -> false
                 // Only count the first split page and not the others
-                fileName.contains("__") && !fileName.endsWith("__001.jpg") -> false
+                fileName.contains("__") && !fileName.substringBeforeLast('.').endsWith("__001") -> false
                 else -> true
             }
         }
