@@ -56,7 +56,7 @@ class MangaCoverFetcher(
     private val getSource: suspend () -> HttpSource?,
     private val callFactoryLazy: Lazy<Call.Factory>,
     private val imageLoader: ImageLoader,
-    private val dataSaverLazy: Lazy<DataSaver>,
+    private val sourcePreferences: SourcePreferences,
 ) : Fetcher {
 
     private val diskCacheKey: String
@@ -184,8 +184,9 @@ class MangaCoverFetcher(
     }
 
     private fun newRequest(source: HttpSource?): Request {
+        val dataSaver = coverDataSaver(source, sourcePreferences)
         val request = Request.Builder().apply {
-            url(dataSaverLazy.value.compress(url!!))
+            url(dataSaver.compress(url!!))
 
             val sourceHeaders = source?.headers
             if (sourceHeaders != null) {
@@ -305,12 +306,10 @@ class MangaCoverFetcher(
         private val callFactoryLazy: Lazy<Call.Factory>,
         private val coverCache: CoverCache,
         private val sourceManager: SourceManager,
+        private val sourcePreferences: SourcePreferences,
     ) : Fetcher.Factory<Manga> {
 
-        private val sourcePreferences: SourcePreferences by injectLazy()
-
         override fun create(data: Manga, options: Options, imageLoader: ImageLoader): Fetcher {
-            val source = lazy { sourceManager.get(data.source) as? HttpSource }
             return MangaCoverFetcher(
                 url = data.thumbnailUrl,
                 isLibraryManga = data.favorite,
@@ -321,7 +320,7 @@ class MangaCoverFetcher(
                 getSource = { sourceManager.get(data.source) as? HttpSource },
                 callFactoryLazy = callFactoryLazy,
                 imageLoader = imageLoader,
-                dataSaverLazy = coverDataSaver(source, sourcePreferences),
+                sourcePreferences = sourcePreferences,
             )
         }
     }
@@ -330,12 +329,10 @@ class MangaCoverFetcher(
         private val callFactoryLazy: Lazy<Call.Factory>,
         private val coverCache: CoverCache,
         private val sourceManager: SourceManager,
+        private val sourcePreferences: SourcePreferences,
     ) : Fetcher.Factory<MangaCover> {
 
-        private val sourcePreferences: SourcePreferences by injectLazy()
-
         override fun create(data: MangaCover, options: Options, imageLoader: ImageLoader): Fetcher {
-            val source = lazy { sourceManager.get(data.sourceId) as? HttpSource }
             return MangaCoverFetcher(
                 url = data.url,
                 isLibraryManga = data.isMangaFavorite,
@@ -346,7 +343,7 @@ class MangaCoverFetcher(
                 getSource = { sourceManager.get(data.sourceId) as? HttpSource },
                 callFactoryLazy = callFactoryLazy,
                 imageLoader = imageLoader,
-                dataSaverLazy = coverDataSaver(source, sourcePreferences),
+                sourcePreferences = sourcePreferences,
             )
         }
     }
@@ -362,11 +359,11 @@ class MangaCoverFetcher(
         private val concurrentRequests = DeDupeConcurrentRequests<FetchResult>()
 
         fun coverDataSaver(
-            sourceLazy: Lazy<HttpSource?>,
+            source: HttpSource?,
             sourcePreferences: SourcePreferences,
-        ): Lazy<DataSaver> = lazy {
-            if (sourcePreferences.dataSaverCover().get()) {
-                DataSaver(sourceLazy.value, sourcePreferences)
+        ): DataSaver {
+            return if (sourcePreferences.dataSaverCover().get()) {
+                DataSaver(source, sourcePreferences)
             } else {
                 DataSaver.NoOp
             }

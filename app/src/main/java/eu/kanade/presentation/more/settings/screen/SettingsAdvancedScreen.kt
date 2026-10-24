@@ -78,6 +78,7 @@ object SettingsAdvancedScreen : SearchableSettings {
         val basePreferences = remember { graph.basePreferences }
         val networkPreferences = remember { graph.networkPreferences }
         val libraryPreferences = remember { graph.libraryPreferences }
+        val sourcePreferences = remember { graph.sourcePreferences }
         val crashLogUtil = remember { graph.crashLogUtil }
 
         return listOf(
@@ -131,7 +132,7 @@ object SettingsAdvancedScreen : SearchableSettings {
             getLibraryGroup(libraryPreferences = libraryPreferences),
             getReaderGroup(basePreferences = basePreferences),
             getExtensionsGroup(basePreferences = basePreferences),
-            getDataSaverGroup(), // Add data saver settings group
+            getDataSaverGroup(sourcePreferences = sourcePreferences), // Add data saver settings group
         )
     }
 
@@ -425,10 +426,8 @@ object SettingsAdvancedScreen : SearchableSettings {
     }
 
     @Composable
-    private fun getDataSaverGroup(): Preference.PreferenceGroup {
-        val sourcePreferences = remember { Injekt.get<SourcePreferences>() }
+    private fun getDataSaverGroup(sourcePreferences: SourcePreferences): Preference.PreferenceGroup {
         val dataSaver by sourcePreferences.dataSaver().collectAsState()
-        val dataSaverImageQuality by sourcePreferences.dataSaverImageQuality().collectAsState()
         return Preference.PreferenceGroup(
             title = "Data Saver",
             preferenceItems = listOf(
@@ -446,35 +445,34 @@ object SettingsAdvancedScreen : SearchableSettings {
                     preference = sourcePreferences.dataSaverServer(),
                     title = "Bandwidth Hero Server",
                     subtitle = "Enter Bandwidth Hero Proxy server URL",
-                    enabled = dataSaver == DataSaver.BANDWIDTH_HERO,
+                    visible = dataSaver == DataSaver.BANDWIDTH_HERO,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverDownloader(),
                     title = "Use data saver in downloader",
-                    enabled = dataSaver != DataSaver.NONE,
+                    visible = dataSaver != DataSaver.NONE,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverCover(),
                     title = "Use data saver for covers",
-                    enabled = dataSaver != DataSaver.NONE,
+                    visible = dataSaver != DataSaver.NONE,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverIgnoreJpeg(),
                     title = "Ignore JPEG images",
-                    enabled = dataSaver != DataSaver.NONE,
+                    visible = dataSaver != DataSaver.NONE,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverIgnoreGif(),
                     title = "Ignore GIF animations",
-                    enabled = dataSaver != DataSaver.NONE,
+                    visible = dataSaver != DataSaver.NONE,
                 ),
                 Preference.PreferenceItem.SliderPreference(
-                    value = dataSaverImageQuality,
+                    preference = sourcePreferences.dataSaverImageQuality(),
                     valueRange = 1..100,
                     title = "Image quality",
-                    valueString = "$dataSaverImageQuality%",
-                    enabled = dataSaver != DataSaver.NONE,
-                    onValueChanged = { sourcePreferences.dataSaverImageQuality().set(it) },
+                    valueText = { "$it%" },
+                    visible = dataSaver != DataSaver.NONE,
                 ),
                 kotlin.run {
                     val dataSaverImageFormatJpeg by sourcePreferences.dataSaverImageFormatJpeg()
@@ -487,19 +485,19 @@ object SettingsAdvancedScreen : SearchableSettings {
                         } else {
                             "Currently preserving original format"
                         },
-                        enabled = dataSaver != DataSaver.NONE,
+                        visible = dataSaver != DataSaver.NONE,
                     )
                 },
                 Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverColorBW(),
                     title = "Convert to black and white",
-                    enabled = dataSaver == DataSaver.BANDWIDTH_HERO,
+                    visible = dataSaver == DataSaver.BANDWIDTH_HERO,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = sourcePreferences.dataSaverAvif(),
                     title = "Use AVIF format",
                     subtitle = "AVIF provides the best compression ratio when enabled",
-                    enabled = dataSaver == DataSaver.BANDWIDTH_HERO,
+                    visible = dataSaver == DataSaver.BANDWIDTH_HERO,
                 ),
             ),
         )
