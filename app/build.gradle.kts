@@ -49,7 +49,7 @@ android {
     if (System.getenv("MIHON_GITHUB_RELEASE").toBoolean()) {
         val tempStoreFile = file(System.getenv("RUNNER_TEMP")).resolve("antsy.keystore")
 
-        val storeFileBytes = System.getenv("storeFileBase64").let(Base64.Mime::decode)
+        val storeFileBytes = java.util.Base64.getMimeDecoder().decode(System.getenv("storeFileBase64"))
         tempStoreFile.outputStream().use { it.write(storeFileBytes) }
 
         signingConfigs {
