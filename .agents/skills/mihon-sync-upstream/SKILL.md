@@ -81,12 +81,16 @@ The data-saver branch typically conflicts with upstream in the following files. 
 
 ### B. `app/build.gradle.kts`
 - **Issue**: Upstream references `storeFile = file(System.getenv("storeFile"))`, while fork decodes Base64 keystore into `tempStoreFile`. Also, `Base64` import can get dropped during merge.
-- **Resolution**: Use fully qualified `java.util.Base64.getMimeDecoder().decode(...)` (which handles multiline base64 safely without needing imports) and set `storeFile = tempStoreFile`:
+- **Resolution**: Ensure `import java.util.Base64` is at the top of the file, and use `Base64.getMimeDecoder().decode(...)` (do not write `java.util.Base64` inside the script body, as Gradle shadows the `java` keyword with its Java extension):
   ```kotlin
+  // At the top of app/build.gradle.kts:
+  import java.util.Base64
+
+  // Inside android { ... }:
   if (System.getenv("MIHON_GITHUB_RELEASE").toBoolean()) {
       val tempStoreFile = file(System.getenv("RUNNER_TEMP")).resolve("antsy.keystore")
 
-      val storeFileBytes = java.util.Base64.getMimeDecoder().decode(System.getenv("storeFileBase64"))
+      val storeFileBytes = Base64.getMimeDecoder().decode(System.getenv("storeFileBase64"))
       tempStoreFile.outputStream().use { it.write(storeFileBytes) }
 
       signingConfigs {

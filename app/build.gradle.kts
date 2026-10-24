@@ -8,6 +8,7 @@ import mihon.gradle.getLatestCommitSha
 import mihon.gradle.getLatestCommitTime
 import mihon.gradle.tasks.ReplaceShortcutsPlaceholderTask
 import java.io.FileInputStream
+import java.util.Base64
 import java.util.Properties
 
 plugins {
@@ -49,7 +50,7 @@ android {
     if (System.getenv("MIHON_GITHUB_RELEASE").toBoolean()) {
         val tempStoreFile = file(System.getenv("RUNNER_TEMP")).resolve("antsy.keystore")
 
-        val storeFileBytes = java.util.Base64.getMimeDecoder().decode(System.getenv("storeFileBase64"))
+        val storeFileBytes = Base64.getMimeDecoder().decode(System.getenv("storeFileBase64"))
         tempStoreFile.outputStream().use { it.write(storeFileBytes) }
 
         signingConfigs {
