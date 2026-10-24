@@ -48,14 +48,22 @@ android {
     }
 
     if (System.getenv("MIHON_GITHUB_RELEASE").toBoolean()) {
-        val tempStoreFile = file(System.getenv("RUNNER_TEMP")).resolve("antsy.keystore")
+        val storeFileBase64 = System.getenv("storeFileBase64")
+        val storeFileEnv = System.getenv("storeFile")
 
-        val storeFileBytes = Base64.getMimeDecoder().decode(System.getenv("storeFileBase64"))
-        tempStoreFile.outputStream().use { it.write(storeFileBytes) }
+        val signingStoreFile = when {
+            !storeFileBase64.isNullOrBlank() -> {
+                val tempStoreFile = file(System.getenv("RUNNER_TEMP")).resolve("antsy.keystore")
+                tempStoreFile.outputStream().use { it.write(Base64.getMimeDecoder().decode(storeFileBase64)) }
+                tempStoreFile
+            }
+            !storeFileEnv.isNullOrBlank() -> file(storeFileEnv)
+            else -> file(System.getenv("RUNNER_TEMP")).resolve("antsy.keystore")
+        }
 
         signingConfigs {
             named("debug") {
-                storeFile = tempStoreFile
+                storeFile = signingStoreFile
                 storePassword = System.getenv("storePassword")
                 keyAlias = System.getenv("keyAlias")
                 keyPassword = System.getenv("keyPassword")
