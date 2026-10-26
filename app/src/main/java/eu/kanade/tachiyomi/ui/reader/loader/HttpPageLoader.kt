@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.ui.reader.loader
 
+import android.content.Context
 import eu.kanade.domain.chapter.model.toSChapter
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.data.cache.ChapterCache
@@ -18,6 +19,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import mihon.app.di.appGraph
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.util.concurrent.ConcurrentHashMap
@@ -34,7 +36,7 @@ internal class HttpPageLoader(
 ) : PageLoader() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val sourcePreferences: SourcePreferences = Injekt.get()
+    private val sourcePreferences: SourcePreferences = Injekt.get<Context>().appGraph.sourcePreferences
     private val dataSaver = DataSaver(source, sourcePreferences)
 
     private val chunkProcessLock = Any()

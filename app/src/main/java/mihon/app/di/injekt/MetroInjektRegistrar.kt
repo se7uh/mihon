@@ -2,6 +2,7 @@ package mihon.app.di.injekt
 
 import android.app.Application
 import android.content.Context
+import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.network.JavaScriptEngine
 import eu.kanade.tachiyomi.network.NetworkHelper
 import kotlinx.serialization.json.Json
@@ -32,6 +33,8 @@ class MetroInjektRegistrar(
 
         NetworkHelper::class.java to { graph.networkHelper },
         JavaScriptEngine::class.java to { graph.javaScriptEngine },
+
+        SourcePreferences::class.java to { graph.sourcePreferences },
     )
 
     override fun <R : Any> getInstance(forType: Type): R = getInstanceOrNull(forType)

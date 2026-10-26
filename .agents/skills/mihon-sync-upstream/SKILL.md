@@ -136,10 +136,11 @@ The data-saver branch typically conflicts with upstream in the following files. 
   ```
 
 ### G. `app/src/main/java/eu/kanade/tachiyomi/ui/reader/loader/HttpPageLoader.kt`
-- **Issue**: Upstream uses new chunk streaming reader with `page.downloadStream`, while fork wraps `DataSaver.getImage(...)`.
+- **Issue**: Upstream uses new chunk streaming reader with `page.downloadStream`, while fork wraps `DataSaver.getImage(...)`. Also, `Injekt.get()` cannot directly resolve `SourcePreferences` unless bridged or accessed via `Context.appGraph`.
 - **Resolution**:
-  1. Maintain `dataSaver` field in `HttpPageLoader`.
-  2. In `internalLoadPage`, wrap image loading with `DataSaver.getImage(source, page, dataSaver)` and pass response to `chapterCache.putImageToCache(imageUrl, imageResponse, live)`:
+  1. Retrieve `SourcePreferences` via `Injekt.get<Context>().appGraph.sourcePreferences` (and ensure `SourcePreferences` binding is exposed in `MetroInjektRegistrar.kt`).
+  2. Maintain `dataSaver` field in `HttpPageLoader`.
+  3. In `internalLoadPage`, wrap image loading with `DataSaver.getImage(source, page, dataSaver)` and pass response to `chapterCache.putImageToCache(imageUrl, imageResponse, live)`:
   ```kotlin
   try {
       val imageResponse = DataSaver.getImage(source, page, dataSaver)
